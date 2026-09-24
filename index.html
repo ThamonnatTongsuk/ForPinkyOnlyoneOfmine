@@ -1,510 +1,627 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>forพี่พิงค์คนเดียว :D </title>
+    <title>For Pinky Anniversary</title>
 
-    <!-- ใช้ Google Fonts เป็น Fallback ในกรณีที่ยังไม่มีไฟล์ฟอนต์จริง -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Itim&family=Mali:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Itim&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
 
     <style>
+        /* ================= CSS STYLES (ธีมอวกาศและกลางคืน) ================= */
         :root {
-            /* Theme Colors */
-            --bg-margin: #ffd3e0;       /* ขอบสีชมพูรอบเว็บ */
-            --bg-desk: #fff5f7;         /* พื้นหลังโต๊ะสีครีมชมพูอ่อนๆ */
-            --booth-border: #ffffff;    /* สีกรอบ Photo Booth */
-            --pad-pink: #f48fb1;        /* สี Padding แผ่นแรก (ชมพูเข้ม) */
-            --pad-blue: #e3f2fd;        /* สี Padding แผ่นที่สอง */
-            --paper-color: #fffdf2;     /* สีกระดาษลับ */
-            --text-color: #5c4044;      /* สีข้อความวินเทจ */
-            --shadow-color: rgba(168, 123, 134, 0.25);
-            
-            /* 
-             * Responsive Scaling Variable 
-             * สร้างตัวคูณ (Multiplier) ที่อิงจากขนาดหน้าจอ (vmin)
-             * เพื่อให้ย่อส่วนทุกอย่างลงตามสัดส่วนเดิม 100% โดยไม่จัดเรียง Layout ใหม่
-             * กำหนด Max Cap ไว้ที่ 1px เพื่อไม่ให้ใหญ่เกินไปบนหน้าจอ Desktop ขนาดใหญ่
-             */
-            --u: min(0.09vmin, 1px);
+            --text: #F9F8F6; /* เปลี่ยนตัวหนังสือเป็นสีสว่าง */
+            --accent: #D4A373; /* สีทองวิบวับสไตล์ดวงดาว */
         }
 
-        /* รีเซ็ตค่าเริ่มต้น */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body, html {
-            width: 100%;
-            height: 100%;
+        body {
+            /* สีเริ่มต้น จะถูกโค้ด 3D ค่อยๆ ละลายเปลี่ยนสีตอนเลื่อน CD */
+            background-color: #050614; 
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            height: 400vh;
             overflow-x: hidden;
-            background-color: var(--bg-margin);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            /* ป้องกันการคลุมดำและลากรูป */
+            -webkit-font-smoothing: antialiased;
+            touch-action: pan-y;
             user-select: none;
-            -webkit-user-drag: none;
+            -webkit-user-select: none;
         }
 
-        /* ฟอนต์ตาม Requirement */
-        @font-face {
-            font-family: 'PG Jam Rolls';
-            src: local('PG Jam Rolls');
-        }
-        @font-face {
-            font-family: 'LMF Wanangkhan';
-            src: local('LMF Wanangkhan');
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 9999; opacity: 0.04;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
         }
 
-        .font-jamrolls {
-            font-family: 'PG Jam Rolls', 'Itim', cursive;
+        #webgl-canvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1; outline: none;
+        }
+
+        /* 🌟 ใส่เงา Text Shadow ให้ข้อความลอยเด่นขึ้นมาจากอวกาศ */
+        header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: clamp(15px, 3vw, 40px); z-index: 10; pointer-events: none;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.8);
+        }
+        .logo { font-family: 'Itim', cursive; font-size: clamp(20px, 3.5vw, 48px); font-weight: 400; line-height: 1; }
+        .nav-text { font-size: clamp(8px, 0.8vw, 12px); letter-spacing: 2px; font-weight: 500; text-transform: uppercase; color: var(--accent); margin-top: 5px; text-align: right; }
+
+        .bottom-ui {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            display: flex; justify-content: space-between; align-items: flex-end;
+            padding: clamp(15px, 3vw, 40px); z-index: 10; pointer-events: none;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.8);
+        }
+        .date-title {
+            font-family: 'Newsreader', serif; font-style: italic; font-size: clamp(24px, 6vw, 100px);
+            margin: 0; line-height: 0.95; font-weight: 400; letter-spacing: -1px; max-width: 45vw;
+        }
+        .subtitle-text { font-size: clamp(8px, 0.9vw, 14px); letter-spacing: 2px; margin-top: 10px; font-weight: 500; opacity: 0.7; text-transform: uppercase; color: #ccc; }
+        
+        .quote-container { text-align: right; max-width: 45vw; }
+        .hearts { font-size: clamp(10px, 1.5vw, 24px); letter-spacing: 3px; margin-bottom: 5px; color: var(--accent); }
+        .quote-text { font-family: 'Itim', cursive; font-size: clamp(12px, 1.8vw, 24px); line-height: 1.4; color: #FFF; }
+
+        .center-instruction {
+            position: fixed; top: 80%; left: 50%; transform: translateX(-50%);
+            text-align: center; font-size: clamp(8px, 1vw, 12px); letter-spacing: 2px; opacity: 0.6; z-index: 10; pointer-events: none;
+            font-weight: 500; text-transform: uppercase; width: 100%; color: var(--accent); text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        }
+
+        .circle-container {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 35vw; height: 35vw; min-width: 140px; min-height: 140px;
+            pointer-events: none; z-index: 2; display: flex; justify-content: center; align-items: center;
+        }
+        .circle-container svg { width: 100%; height: 100%; overflow: visible; animation: spin 30s linear infinite; }
+        .ring-outer { stroke: var(--accent); opacity: 0.8; }
+        .ring-inner { stroke: rgba(255, 255, 255, 0.2); }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .takeover {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 100; pointer-events: none; overflow: hidden;
+            display: flex; justify-content: center; align-items: center; text-align: center; color: #fff;
+        }
+        .takeover.active { pointer-events: auto; }
+        .takeover-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            transform: scale(1.15); opacity: 0; filter: blur(5px);
+            transition: filter 1.5s ease;
+        }
+        .takeover.active .takeover-bg { filter: blur(0px); }
+        .takeover-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            /* ดรอปแสงให้มืดลงนิดนึงเพื่อให้อ่านข้อความอวยพรได้ง่าย */
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.85) 100%); opacity: 0;
+        }
+        .takeover-content { position: relative; z-index: 101; padding: 20px; width: 90vw; max-width: 900px; }
+        .takeover-sub { font-size: clamp(10px, 1.5vw, 16px); letter-spacing: 4px; margin-bottom: 20px; opacity: 0; font-weight: 300; color: var(--accent); }
+        
+        .takeover-title {
+            font-family: 'Itim', cursive; font-size: clamp(24px, 5vw, 55px);
+            font-weight: 400; margin: 0 0 40px 0; letter-spacing: 1px; line-height: 1.5; opacity: 0;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.8);
         }
         
-        .font-wanangkhan {
-            font-family: 'LMF Wanangkhan', 'Mali', cursive;
+        .close-btn {
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: #fff;
+            padding: clamp(10px, 2vw, 16px) clamp(20px, 4vw, 45px); 
+            font-family: 'Itim', cursive; font-size: clamp(12px, 1.5vw, 18px); letter-spacing: 2px;
+            border-radius: 50px; cursor: pointer; transition: all 0.4s ease; opacity: 0; backdrop-filter: blur(5px); text-transform: uppercase;
         }
+        .close-btn:hover { background: #fff; color: #000; border-color: #fff; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
 
-        /* โต๊ะจำลอง (Scene) ที่รักษาสัดส่วน */
-        .scene {
-            width: 95vw;
-            height: 95vh;
-            background-color: var(--bg-desk);
-            background-image: 
-                radial-gradient(circle at 100% 100%, #ffedf2 0%, transparent 50%),
-                radial-gradient(circle at 0% 0%, #ffedf2 0%, transparent 50%);
-            border-radius: calc(20 * var(--u));
-            box-shadow: inset 0 0 calc(40 * var(--u)) rgba(255, 255, 255, 0.5),
-                        0 calc(20 * var(--u)) calc(50 * var(--u)) rgba(0,0,0,0.1);
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: calc(60 * var(--u)); /* ระยะห่างระหว่างแผ่น (สเกลตามหน้าจอ) */
-            overflow: hidden;
-            /* บังคับเรียงแนวนอน (Row) เสมอ ไม่ว่าอุปกรณ์ใด */
-            flex-direction: row;
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050614; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
-
-        /* กรอบหลักของ Photo Booth แต่ละแผ่น */
-        .booth-wrapper {
-            position: relative;
-            width: calc(300 * var(--u)); /* ขนาดสเกลแทน clamp แบบเก่า */
-            z-index: 2;
-            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        /* แผ่นที่ 1 เอียงซ้ายนิดๆ */
-        .strip-1-wrap {
-            transform: rotate(-3deg) translateY(calc(10 * var(--u)));
-            animation: float 6s ease-in-out infinite;
-        }
-
-        /* แผ่นที่ 2 เอียงขวานิดๆ */
-        .strip-2-wrap {
-            transform: rotate(4deg) translateY(calc(-10 * var(--u)));
-            animation: float 7s ease-in-out infinite alternate;
-        }
-
-        .booth {
-            background-color: var(--booth-border);
-            padding: calc(20 * var(--u));
-            border-radius: calc(4 * var(--u));
-            box-shadow: calc(2 * var(--u)) calc(10 * var(--u)) calc(25 * var(--u)) var(--shadow-color);
-            position: relative;
-        }
-
-        /* สี Padding ด้านใน */
-        .booth.bg-pink { background-color: var(--booth-border); }
-        .booth.bg-pink .inner-pad { background-color: var(--pad-pink); }
-        
-        .booth.bg-blue { background-color: var(--booth-border); }
-        .booth.bg-blue .inner-pad { background-color: var(--pad-blue); }
-
-        .inner-pad {
-            padding: calc(15 * var(--u));
-            border-radius: calc(2 * var(--u));
-            display: flex;
-            flex-direction: column;
-            gap: calc(15 * var(--u));
-        }
-
-        /* ช่องใส่รูปภาพแต่ละช่อง */
-        .photo-slot {
-            width: 100%;
-            aspect-ratio: 3 / 4; /* อัตราส่วนรูปถ่ายคงเดิม */
-            background-color: #eaeaea; 
-            position: relative;
-            overflow: hidden;
-            border-radius: calc(2 * var(--u));
-            box-shadow: inset 0 calc(2 * var(--u)) calc(5 * var(--u)) rgba(0,0,0,0.05);
-        }
-
-        .photo-slot img {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            opacity: 0;
-            transition: opacity 1.5s ease-in-out; 
-        }
-
-        .photo-slot img.active {
-            opacity: 1;
-        }
-
-        /* การตกแต่งสติกเกอร์ (ใช้ % เพื่อให้ขยับสเกลตามกรอบ) */
-        .sticker {
-            position: absolute;
-            z-index: 10;
-            filter: drop-shadow(0 calc(4 * var(--u)) calc(6 * var(--u)) rgba(0,0,0,0.15));
-            pointer-events: none;
-        }
-
-        /* การจัดวางสติกเกอร์ แผ่นที่ 1 (m1-m6) */
-        .s-m1 { top: -5%; left: -10%; width: 35%; transform: rotate(-15deg); animation: wiggle 4s infinite; }
-        .s-m2 { top: 30%; right: -12%; width: 30%; transform: rotate(10deg); }
-        .s-m3 { top: 50%; left: -8%; width: 25%; transform: rotate(-5deg); }
-        .s-m4 { bottom: 25%; right: -5%; width: 28%; transform: rotate(20deg); animation: wiggle 5s infinite reverse; }
-        .s-m5 { bottom: -6%; left: 10%; width: 32%; transform: rotate(-10deg); }
-        .s-m6 { top: 15%; left: -5%; width: 20%; transform: rotate(5deg); }
-
-        /* การจัดวางสติกเกอร์ แผ่นที่ 2 (m7-m12) */
-        .s-m7 { top: -8%; right: 10%; width: 38%; transform: rotate(15deg); animation: wiggle 6s infinite; }
-        .s-m8 { top: 25%; left: -12%; width: 35%; transform: rotate(-15deg); }
-        .s-m9 { top: 45%; right: -8%; width: 25%; transform: rotate(10deg); }
-        .s-m10 { bottom: 30%; left: -5%; width: 30%; transform: rotate(-20deg); }
-        .s-m11 { bottom: -5%; right: 5%; width: 35%; transform: rotate(8deg); animation: wiggle 4s infinite alternate; }
-        .s-m12 { top: 65%; left: -10%; width: 22%; transform: rotate(-8deg); }
-
-        /* ส่วนของกระดาษโน้ตลับ */
-        .secret-group {
-            position: relative;
-            perspective: calc(1000 * var(--u)); 
-        }
-
-        .secret-paper {
-            position: absolute;
-            top: 10%;
-            right: -10%;
-            left: auto;
-            width: calc(320 * var(--u));
-            aspect-ratio: 1 / 1;
-            background-color: var(--paper-color);
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
-            border-radius: calc(5 * var(--u));
-            box-shadow: calc(2 * var(--u)) calc(5 * var(--u)) calc(15 * var(--u)) var(--shadow-color);
-            z-index: 1;
-            padding: calc(20 * var(--u));
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            
-            /* สถานะเริ่มต้น */
-            transform: translateZ(calc(-50 * var(--u))) translateX(calc(40 * var(--u))) rotate(8deg); 
-            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            cursor: pointer;
-        }
-
-        /* ติ่งกระดาษที่โผล่ออกมาให้กด */
-        .secret-hint {
-            position: absolute;
-            top: 40%;
-            right: calc(-35 * var(--u));
-            left: auto;
-            background: #fff;
-            padding: calc(5 * var(--u)) calc(10 * var(--u));
-            border-radius: calc(5 * var(--u));
-            font-size: calc(16 * var(--u));
-            color: #d88fa0;
-            box-shadow: 0 calc(2 * var(--u)) calc(5 * var(--u)) rgba(0,0,0,0.1);
-            animation: bounce-hint 2s infinite;
-            pointer-events: none;
-            transform: rotate(90deg);
-            transform-origin: center center;
-        }
-
-        .paper-msg {
-            font-size: calc(40 * var(--u));
-            color: var(--text-color);
-            margin-bottom: calc(20 * var(--u));
-        }
-
-        .paper-date {
-            position: absolute;
-            bottom: calc(15 * var(--u));
-            right: calc(20 * var(--u));
-            font-size: calc(18 * var(--u));
-            color: #9c7b82;
-            text-align: right;
-            line-height: 1.4;
-        }
-        
-        .paper-sticker {
-            position: absolute;
-            top: 10%;
-            right: 10%;
-            width: 30%;
-            transform: rotate(15deg);
-            pointer-events: none;
-            filter: drop-shadow(0 calc(2 * var(--u)) calc(4 * var(--u)) rgba(0,0,0,0.1));
-        }
-
-        /* สถานะเมื่อกดดูกระดาษ */
-        .secret-group.active .strip-2-wrap {
-            transform: translateZ(calc(-100 * var(--u))) translateY(calc(40 * var(--u))) translateX(calc(-100 * var(--u))) rotate(-5deg) scale(0.9);
-            opacity: 0.8;
-            pointer-events: none;
-        }
-
-        .secret-group.active .secret-paper {
-            transform: translateZ(calc(50 * var(--u))) translateY(calc(-20 * var(--u))) translateX(calc(100 * var(--u))) rotate(5deg) scale(1.1);
-            z-index: 10;
-            box-shadow: 0 calc(30 * var(--u)) calc(60 * var(--u)) rgba(0,0,0,0.15);
-        }
-
-        .secret-group.active .secret-hint {
-            opacity: 0;
-        }
-
-        /* Animations */
-        @keyframes float {
-            0% { transform: translateY(0) rotate(inherit); }
-            50% { transform: translateY(calc(-15 * var(--u))) rotate(inherit); }
-            100% { transform: translateY(0) rotate(inherit); }
-        }
-
-        @keyframes wiggle {
-            0%, 100% { transform: rotate(-5deg) scale(1); }
-            50% { transform: rotate(5deg) scale(1.05); }
-        }
-
-        @keyframes bounce-hint {
-            0%, 100% { transform: rotate(90deg) translateY(0); }
-            50% { transform: rotate(90deg) translateY(calc(-8 * var(--u))); }
-        }
-        
-        /* Animation สำหรับ Monchi ตกลงมา */
-        .falling-monchi {
-            position: fixed;
-            top: calc(-150 * var(--u));
-            z-index: 100;
-            pointer-events: none;
-            filter: drop-shadow(0 calc(5 * var(--u)) calc(10 * var(--u)) rgba(0,0,0,0.2));
-            animation: fall-down linear infinite;
-        }
-        
-        /* ชุดสติกเกอร์ตกแบบจัดเต็ม เต็มขอบจอ */
-        .fm-1 { left: 2%; animation-duration: 14s; animation-delay: 0s; width: calc(90 * var(--u)); }
-        .fm-2 { left: 12%; animation-duration: 18s; animation-delay: 4s; width: calc(100 * var(--u)); }
-        .fm-3 { left: 22%; animation-duration: 12s; animation-delay: 2s; width: calc(80 * var(--u)); }
-        .fm-4 { left: 32%; animation-duration: 20s; animation-delay: 7s; width: calc(110 * var(--u)); }
-        .fm-5 { left: 42%; animation-duration: 16s; animation-delay: 1s; width: calc(90 * var(--u)); }
-        .fm-6 { left: 52%; animation-duration: 22s; animation-delay: 5s; width: calc(100 * var(--u)); }
-        .fm-7 { left: 62%; animation-duration: 15s; animation-delay: 3s; width: calc(95 * var(--u)); }
-        .fm-8 { left: 72%; animation-duration: 19s; animation-delay: 6s; width: calc(120 * var(--u)); }
-        .fm-9 { left: 82%; animation-duration: 13s; animation-delay: 0s; width: calc(85 * var(--u)); }
-        .fm-10 { left: 92%; animation-duration: 17s; animation-delay: 8s; width: calc(105 * var(--u)); }
-        .fm-11 { left: 8%; animation-duration: 25s; animation-delay: 10s; width: calc(95 * var(--u)); }
-        .fm-12 { left: 28%; animation-duration: 21s; animation-delay: 12s; width: calc(130 * var(--u)); }
-        .fm-13 { left: 48%; animation-duration: 14s; animation-delay: 9s; width: calc(90 * var(--u)); }
-        .fm-14 { left: 68%; animation-duration: 23s; animation-delay: 11s; width: calc(100 * var(--u)); }
-        .fm-15 { left: 88%; animation-duration: 16s; animation-delay: 14s; width: calc(90 * var(--u)); }
-
-        @keyframes fall-down {
-            0% { 
-                top: calc(-150 * var(--u)); 
-                transform: rotate(-20deg);
-                opacity: 0;
-            }
-            5% { opacity: 1; }
-            50% { transform: rotate(20deg); }
-            95% { opacity: 1; }
-            100% { 
-                top: 110vh; 
-                transform: rotate(-20deg);
-                opacity: 0;
-            }
-        }
-        
-        .booth-wrapper:hover {
-            z-index: 5;
-        }
+        .loader-text { font-family: 'Itim', cursive; font-size: clamp(32px, 6vw, 64px); letter-spacing: 2px; color: #fff; animation: pulse 1.5s infinite; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .loader-sub { font-family: 'Inter', sans-serif; font-size: clamp(8px, 1vw, 12px); letter-spacing: 4px; margin-top: 15px; text-transform: uppercase; color: var(--accent); }
     </style>
 </head>
 <body>
 
-    <!-- สติกเกอร์ Monchi ตกลงมาจากฟ้า (ใส่เยอะๆ เต็มจอ) -->
-    <img src="m1.png" class="falling-monchi fm-1" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m2.png" class="falling-monchi fm-2" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m3.png" class="falling-monchi fm-3" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m4.png" class="falling-monchi fm-4" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m5.png" class="falling-monchi fm-5" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m6.png" class="falling-monchi fm-6" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m7.png" class="falling-monchi fm-7" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m8.png" class="falling-monchi fm-8" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m9.png" class="falling-monchi fm-9" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m10.png" class="falling-monchi fm-10" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m11.png" class="falling-monchi fm-11" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m12.png" class="falling-monchi fm-12" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m1.png" class="falling-monchi fm-13" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m5.png" class="falling-monchi fm-14" alt="falling-sticker" onerror="this.style.display='none'">
-    <img src="m8.png" class="falling-monchi fm-15" alt="falling-sticker" onerror="this.style.display='none'">
+    <!-- แทรกไฟล์เสียงไว้ตรงนี้ -->
+    <audio id="bg-music" loop>
+        <source src="ter.mp3" type="audio/mpeg">
+    </audio>
 
-    <div class="scene">
-        
-        <!-- ================= แผ่นที่ 1 (ชมพู) ================= -->
-        <div class="booth-wrapper strip-1-wrap">
-            <!-- Stickers -->
-            <img src="m1.png" class="sticker s-m1" alt="sticker" onerror="this.style.display='none'">
-            <img src="m2.png" class="sticker s-m2" alt="sticker" onerror="this.style.display='none'">
-            <img src="m3.png" class="sticker s-m3" alt="sticker" onerror="this.style.display='none'">
-            <img src="m4.png" class="sticker s-m4" alt="sticker" onerror="this.style.display='none'">
-            <img src="m5.png" class="sticker s-m5" alt="sticker" onerror="this.style.display='none'">
-            <img src="m6.png" class="sticker s-m6" alt="sticker" onerror="this.style.display='none'">
-            
-            <div class="booth bg-pink">
-                <div class="inner-pad">
-                    <!-- ช่องที่ 1 (รันรูป 1, 7, 13) -->
-                    <div class="photo-slot" id="slot-1"></div>
-                    <!-- ช่องที่ 2 (รันรูป 2, 8, 14) -->
-                    <div class="photo-slot" id="slot-2"></div>
-                    <!-- ช่องที่ 3 (รันรูป 3, 9, 15) -->
-                    <div class="photo-slot" id="slot-3"></div>
-                </div>
-            </div>
+    <div id="loader">
+        <div class="loader-text">For Pinky</div>
+        <div class="loader-sub">Entering Our Universe...</div>
+    </div>
+    <div class="noise-overlay"></div>
+
+    <canvas id="webgl-canvas"></canvas>
+
+    <div class="circle-container">
+        <svg viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="95" fill="none" stroke-width="0.8" stroke-dasharray="6 6" class="ring-outer" />
+            <circle cx="100" cy="100" r="88" fill="none" stroke-width="0.5" class="ring-inner" />
+        </svg>
+    </div>
+
+    <header>
+        <div class="logo">For Pinky Only  ❤︎ อ้วนของผมคนเดียว</div>
+        <div class="nav-text ui-month">FIRST MONTH</div>
+    </header>
+
+    <div class="center-instruction">SCROLL TO TRAVEL THE STARS <br><br> CLICK CD TO OPEN</div>
+
+    <div class="bottom-ui">
+        <div>
+            <h1 class="date-title ui-text">25 May - 25 June</h1>
+            <div class="subtitle-text ui-text">OUR JOURNEY BEGINS</div>
         </div>
-
-        <!-- ================= แผ่นที่ 2 (ฟ้า) + กระดาษลับ ================= -->
-        <div class="secret-group" id="interaction-zone">
-            
-            <!-- กระดาษลับ (ซ่อนอยู่หลังแผ่น 2) -->
-            <div class="secret-paper" id="secret-paper" title="คลิกเพื่ออ่าน">
-                <img src="m12.png" class="paper-sticker" alt="sticker" onerror="this.style.display='none'">
-                
-                <div class="secret-hint font-jamrolls">ดึงออกมาสิอ้วน</div>
-                <div class="paper-msg font-wanangkhan">เราคิดถึงแกนะ > &lt;</div>
-                <div class="paper-date font-jamrolls">จากน้องแอ๊นท์ ❤️<br>วันที่ 04/08/2026</div>
-            </div>
-
-            <div class="booth-wrapper strip-2-wrap">
-                <!-- Stickers -->
-                <img src="m7.png" class="sticker s-m7" alt="sticker" onerror="this.style.display='none'">
-                <img src="m8.png" class="sticker s-m8" alt="sticker" onerror="this.style.display='none'">
-                <img src="m9.png" class="sticker s-m9" alt="sticker" onerror="this.style.display='none'">
-                <img src="m10.png" class="sticker s-m10" alt="sticker" onerror="this.style.display='none'">
-                <img src="m11.png" class="sticker s-m11" alt="sticker" onerror="this.style.display='none'">
-                
-                <div class="booth bg-blue">
-                    <div class="inner-pad">
-                        <!-- ช่องที่ 4 (รันรูป 4, 10, 16) -->
-                        <div class="photo-slot" id="slot-4"></div>
-                        <!-- ช่องที่ 5 (รันรูป 5, 11, 17) -->
-                        <div class="photo-slot" id="slot-5"></div>
-                        <!-- ช่องที่ 6 (รันรูป 6, 12, 18) -->
-                        <div class="photo-slot" id="slot-6"></div>
-                    </div>
-                </div>
-            </div>
+        <div class="quote-container">
+            <div class="hearts ui-text">♡ ♡ ♡ ♡</div>
+            <div class="quote-text ui-text">"เดือนแรกที่ทำให้รู้ว่าโลกนี้น่าอยู่ขึ้นแค่ไหนที่มีเธอ"</div>
         </div>
+    </div>
 
+    <div class="takeover">
+        <div class="takeover-bg"></div>
+        <div class="takeover-overlay"></div>
+        <div class="takeover-content">
+            <div class="takeover-sub">TO MY DEAR PINKY</div>
+            <h2 class="takeover-title">ข้อความอวยพร</h2>
+            <button class="close-btn">ย้อนกลับ</button>
+        </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        // =========================================================================
+        // 🌌 สีสันกาแล็กซีที่จะถูกดึงไปเปลี่ยนอัตโนมัติ (ทั้งพื้นหลัง และ สีดวงดาว)
+        // =========================================================================
+        const memories = [
+            { 
+                monthTopRight: "FIRST MONTH",
+                dateTitle: "25 May - 25 June",
+                subtitle: "CHAPTER ONE", 
+                quote: "เดือนแรกที่ที่เราเจอคนๆนึงที่เข้ามาสร้างสีสันในชีวิตชั้น", 
+                takeoverSub: "TO P'PINKY วันแรกที่เราเจอแก 25พฤษภาคม",
+                takeoverMessage: "ขอบคุณน้าอ้วนเราโชคดีมากๆๆๆๆๆเลยอะ เป็นคนที่โชคดีจริงๆที่ได้เจอแก",
+                cdImage: "206.jpg", bgImage: "1.jpg",
+                bgColor: "#050614", // 🌌 น้ำเงินอวกาศ (Deep Space Blue)
+                starColor: "#ffffff" // ดาวสีขาว
+            },
+            { 
+                 monthTopRight: "SECOND MONTH",
+                dateTitle: "25 June - 25 July",
+                subtitle: "CHAPTER TWO", 
+                quote: "ที่นี้ยิ่งรู้จักแกก็ยิ่งรู้สึกดี ดีใจจังที่ได้มีแกอยู่ข้างๆเรามาในเดือนที่สองนี้", 
+                takeoverSub: "เดือนที่สองของที่รู้จักแกกก ช่วงนี้นี่คุยกันบ่อยขึ้นเลย",
+                takeoverMessage: "เดือนที่สองเนี่ยเป็นเดือนที่เราเกือบจะได้เจอกันแล้ว535353353 <br>เดือนนี้เราคุยกันเยอะได้รู้จักแกมากกเลยน้า",
+                cdImage: "295.jpg", bgImage: "2.jpg",
+                bgColor: "#140510", // 💜 ม่วงเนบิวลา (Nebula Purple)
+                starColor: "#f4c2ff" // ดาวสีชมพูอมม่วง
+            },
+            { 
+               monthTopRight: "THIRD MONTH",
+                dateTitle: "25 July - 25 August",
+                subtitle: "CHAPTER THREE", 
+                quote: "เดือนที่สามแล้ว เริ่มผ่านอะไรด้วยกันขึ้นมา และอาจจะมีเห็นไม่ตรงกันบ้าง53535335 แต่เราดีใจสุดๆเลย และขอปรับปรุงให้ดีขึ้นไปกับแกนะ", 
+                takeoverSub: "เดือนที่สามมมมม",
+                takeoverMessage: "ผ่านอะไรมากันมากขึ้นนและ และเราก็เริ่มปรับตัวเข้าหาแกมากขึ้นด้วยเริ่มเข้าใจในตัวแกก <br>บางทีอาจจะทำแกอารมณ์เสียบ้าง5555555 แต่เราก็จะพยายามปรับตัวให้ดีขึ้นไปกับแกนะ",
             
-            // ================= 1. ระบบ Photo Slideshow =================
-            // กำหนดชุดรูปภาพสำหรับแต่ละช่อง
-            // ชุด 1: 1-6 | ชุด 2: 7-12 | ชุด 3: 13-18
-            const photoSets = [
-                [1, 7, 13], // รูปสำหรับช่อง 1
-                [2, 8, 14], // รูปสำหรับช่อง 2
-                [3, 9, 15], // รูปสำหรับช่อง 3
-                [4, 10, 16], // รูปสำหรับช่อง 4
-                [5, 11, 17], // รูปสำหรับช่อง 5
-                [6, 12, 18]  // รูปสำหรับช่อง 6
-            ];
+                cdImage: "79.png", bgImage: "3.jpg",
+                bgColor: "#04120e", // 💚 เขียวมรกตออโรร่า (Aurora Teal)
+                starColor: "#c2ffec" // ดาวสีเขียวอ่อน
+            },
+            { 
+                 monthTopRight: "FOURTH MONTH",
+                dateTitle: "25 Aug - 25 Sep",
+                subtitle: "CHAPTER FOUR", 
+                quote: "4 เดือนแล้วไวจุงงเลยย เราจะสร้างความทรงจำดีๆไปด้วยกันอีกนานๆเลยนะ อะไรที่ผ่านมาให้เราได้เรียนรู้ในตัวแกและจะขออยู่เรียนรู้แกไปเรื่อยๆเลยนะ", 
+                takeoverSub: "ไปกานต่อออ เป็นเดือนสอบของแกด้วย ",
+                takeoverMessage: "เดือนนี่ก็เป็นอีกเดือนที่เราผ่านกันมามากขึ้น เราก็ดีใจจริงๆเลยนะ และเราจะขอทำให้แกยิ้มได้ในทุกๆวันเลยนะ <br> ขอเป็นกำลังใจให้แกเสมอในทุกวันๆ <br>หันมาเจอเราอยู่ข้างแกแน่นอนค้าบอ้วง <br>สัปดาห์สอบแกเราก็ขออยู่เป็นกำลังใจนะหันมาหาเราได้ทุกเวลา24/7เลย <br>ขอให้แกโฟกัสให้เต็มที่เลย เราจะอยู่supportแกทางใจเองนะ ",
+               
+                cdImage: "61.jpg", bgImage: "4.jpg",
+                bgColor: "#170505", // ❤️ แดงก่ำกาแล็กซี (Crimson Galaxy)
+                starColor: "#ffd9b3" // ดาวสีทองแดง
+            }
+        ];
+        // =========================================================================
 
-            // สร้าง Element รูปภาพใส่ลงในแต่ละ Slot
-            photoSets.forEach((set, slotIndex) => {
-                const slotId = `slot-${slotIndex + 1}`;
-                const slotEl = document.getElementById(slotId);
-                
-                set.forEach((imgNumber, imgIndex) => {
-                    const img = document.createElement('img');
-                    img.src = `${imgNumber}.jpg`;
-                    // ใส่สีพื้นหลังหลอกกรณีรูปยังไม่มา
-                    img.style.backgroundColor = `hsl(${imgNumber * 20}, 70%, 90%)`; 
-                    
-                    // ให้รูปแรกของทุกช่องเป็น active
-                    if (imgIndex === 0) {
-                        img.classList.add('active');
-                    }
-                    
-                    // ป้องกันรูปแตกเมื่อไม่ได้ใส่ไฟล์ไว้ (สำหรับพรีวิว)
-                    img.onerror = function() {
-                        this.src = `https://placehold.co/400x533/ffe3eb/9c7b82?text=Photo+${imgNumber}`;
-                    };
-                    
-                    slotEl.appendChild(img);
-                });
-            });
-
-            // Logic สลับรูปทุกๆ 6 วินาที
-            let currentSetIndex = 0;
-            const totalSets = 3;
-
-            setInterval(() => {
-                const nextSetIndex = (currentSetIndex + 1) % totalSets;
-
-                // วนลูปทุกช่อง (6 ช่อง)
-                for (let i = 1; i <= 6; i++) {
-                    const slot = document.getElementById(`slot-${i}`);
-                    const images = slot.querySelectorAll('img');
-                    
-                    // Fade out รูปปัจจุบัน
-                    images[currentSetIndex].classList.remove('active');
-                    // Fade in รูปถัดไป
-                    images[nextSetIndex].classList.add('active');
-                }
-
-                currentSetIndex = nextSetIndex;
-            }, 6000); // 6 วินาที
-
-
-            // ================= 2. ระบบ Secret Paper Interaction =================
-            const interactionZone = document.getElementById('interaction-zone');
-            const secretPaper = document.getElementById('secret-paper');
-            let isReading = false;
-            let timeoutId = null;
-
-            // เมื่อคลิกที่กระดาษ (หรือบริเวณพื้นที่กระดาษที่โผล่ออกมา)
-            secretPaper.addEventListener('click', () => {
-                if (isReading) return; // กันกดเบิ้ล
-
-                isReading = true;
-                interactionZone.classList.add('active');
-
-                // เคลียร์ Timeout เก่าถ้ามี
-                if (timeoutId) clearTimeout(timeoutId);
-
-                // ค้างไว้ 8 วินาที แล้วกลับสภาพเดิม
-                timeoutId = setTimeout(() => {
-                    interactionZone.classList.remove('active');
-                    isReading = false;
-                }, 8000);
-            });
+        const lenis = new Lenis({ duration: 1.5, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true, smoothTouch: true });
+        
+        let scrollProgress = 0;
+        let scrollSpeed = 0; // ตัวแปรจับความแรงในการไถจอ
+        
+        lenis.on('scroll', (e) => {
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            scrollProgress = maxScroll > 0 ? e.scroll / maxScroll : 0;
+            scrollSpeed = Math.abs(e.velocity || 0); // จับความเร็วเพื่อทำดาวพุ่ง
         });
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+
+        const canvas = document.getElementById('webgl-canvas');
+        const scene = new THREE.Scene();
+
+        // 🌟 ตัวแปรเก็บสีปัจจุบัน และสีเป้าหมาย เพื่อใช้ละลายสี (Lerp Color) เข้าหากัน
+        const currentBgColor = new THREE.Color(memories[0].bgColor);
+        const targetBgColor = new THREE.Color(memories[0].bgColor);
+        const currentStarColor = new THREE.Color(memories[0].starColor);
+        const targetStarColor = new THREE.Color(memories[0].starColor);
+
+        scene.background = currentBgColor;
+        scene.fog = new THREE.Fog(currentBgColor, 15, 60);
+
+        const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 150);
+
+        function updateCameraZ() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            const fovRad = (camera.fov * Math.PI) / 180;
+            const targetWidth = 21; 
+            let newZ = targetWidth / (2 * Math.tan(fovRad / 2) * camera.aspect);
+            camera.position.z = Math.max(18, newZ); 
+            
+            // ขยับหมอกตามกล้อง จะได้ไม่บังดวงดาว
+            if(scene.fog) {
+                scene.fog.near = camera.position.z - 5;
+                scene.fog.far = camera.position.z + 40;
+            }
+        }
+        updateCameraZ();
+
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.3; 
+
+        // 🌟 จัดแสงสำหรับตอนกลางคืน (หรี่ไฟรอบข้าง สปอตไลต์ส่อง CD)
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        dirLight.position.set(5, 10, 8);
+        scene.add(dirLight);
+
+        const pointLight = new THREE.PointLight(currentStarColor, 2.0, 20); // ไฟวิบวับวิ่งตามนิ้ว
+        pointLight.position.set(0, 0, 10);
+        scene.add(pointLight);
+
+        // 🌟 ฟังก์ชันวาดดวงดาวให้เป็นวงกลมเรืองแสง (ไม่ใช่สี่เหลี่ยมแข็งๆ)
+        function createStarTexture() {
+            const starCanvas = document.createElement('canvas');
+            starCanvas.width = 32; starCanvas.height = 32;
+            const ctx = starCanvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            gradient.addColorStop(0, 'rgba(255,255,255,1)');
+            gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+            gradient.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 32, 32);
+            return new THREE.CanvasTexture(starCanvas);
+        }
+
+        // ================= 3D STAR PARTICLES (สร้างดวงดาวนับพัน) ================= 
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsCount = 1000;
+        const posArray = new Float32Array(starsCount * 3);
+        
+        for(let i = 0; i < starsCount * 3; i+=3) {
+            posArray[i] = (Math.random() - 0.5) * 100; // X
+            posArray[i+1] = (Math.random() - 0.5) * 100; // Y
+            posArray[i+2] = (Math.random() - 0.5) * 100; // Z
+        }
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        
+        const starsMaterial = new THREE.PointsMaterial({
+            size: 0.8,
+            color: currentStarColor,
+            map: createStarTexture(), // แปะแสงวงกลมให้ดาว
+            transparent: true,
+            opacity: 0.8,
+            depthWrite: false, // ป้องกันบัคความโปร่งใสทับซ้อน
+            blending: THREE.AdditiveBlending // ให้แสงดวงดาวสว่างขึ้นเวลามันซ้อนกัน
+        });
+        
+        const starParticles = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(starParticles);
+        // =========================================================================
+
+        const radius = 2.6, innerRadius = 0.45;
+        const shape = new THREE.Shape();
+        shape.absarc(0, 0, radius, 0, Math.PI * 2, false);
+        const holePath = new THREE.Path();
+        holePath.absarc(0, 0, innerRadius, 0, Math.PI * 2, true);
+        shape.holes.push(holePath);
+
+        const cdGeometry = new THREE.ExtrudeGeometry(shape, {
+            depth: 0.04, bevelEnabled: true, bevelSegments: 4, steps: 1, bevelSize: 0.015, bevelThickness: 0.015, curveSegments: 64
+        });
+        cdGeometry.translate(0, 0, -0.02);
+
+        const posAttribute = cdGeometry.attributes.position;
+        const uvAttribute = cdGeometry.attributes.uv;
+        for (let i = 0; i < posAttribute.count; i++) {
+            const x = posAttribute.getX(i); const y = posAttribute.getY(i);
+            uvAttribute.setXY(i, (x / radius + 1) / 2, (y / radius + 1) / 2);
+        }
+
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.setCrossOrigin('anonymous');
+        
+        const cdGroup = new THREE.Group();
+        scene.add(cdGroup);
+        const spacing = 7.5;
+        const discMeshes = [], pivots = [];
+        let loadedCount = 0;
+
+        memories.forEach((memo, i) => {
+            textureLoader.load(memo.cdImage, 
+                (mapTex) => {
+                    mapTex.colorSpace = THREE.SRGBColorSpace;
+                    mapTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+                    // ในที่มืด แผ่น CD จะสะท้อนแสงไฟชัดขึ้น (ปรับ Metalness)
+                    const matFront = new THREE.MeshPhysicalMaterial({ 
+                        map: mapTex, roughness: 0.15, metalness: 0.35, clearcoat: 1.0, clearcoatRoughness: 0.1 
+                    });
+                    const matSide = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.8 }); 
+                    
+                    const mesh = new THREE.Mesh(cdGeometry, [matFront, matSide]);
+                    mesh.userData = { index: i };
+                    
+                    const pivot = new THREE.Group(); 
+                    pivot.position.x = i * spacing;
+                    pivot.add(mesh);
+                    
+                    cdGroup.add(pivot);
+                    discMeshes.push(mesh);
+                    pivots.push({ pivot, mesh, index: i });
+
+                    loadedCount++;
+                    if (loadedCount === memories.length) finishLoading();
+                },
+                undefined,
+                (err) => {
+                    const matFront = new THREE.MeshPhysicalMaterial({ color: 0x333333, roughness: 0.2 });
+                    const matSide = new THREE.MeshStandardMaterial({ color: 0x000000 });
+                    const mesh = new THREE.Mesh(cdGeometry, [matFront, matSide]);
+                    mesh.userData = { index: i };
+                    const pivot = new THREE.Group(); 
+                    pivot.position.x = i * spacing; pivot.add(mesh);
+                    cdGroup.add(pivot); discMeshes.push(mesh); pivots.push({ pivot, mesh, index: i });
+                    
+                    loadedCount++;
+                    if (loadedCount === memories.length) finishLoading();
+                }
+            );
+        });
+
+        function finishLoading() {
+            pivots.sort((a,b) => a.index - b.index); 
+            gsap.to('#loader', { opacity: 0, duration: 1.5, ease: "power2.inOut", onComplete: () => document.getElementById('loader').remove() });
+        }
+
+        let activeIndex = 0;
+        let currentTargetX = 0;
+        let mouseX = 0, mouseY = 0;
+        let isTakeover = false;
+
+        function updateUI(index) {
+            if (index === activeIndex || index >= memories.length) return;
+            activeIndex = index;
+            const memo = memories[index];
+            
+            // 🌟 เซ็ตเป้าหมายสีใหม่ให้สมการคณิตศาสตร์ค่อยๆ ผสมสี
+            targetBgColor.set(memo.bgColor);
+            targetStarColor.set(memo.starColor);
+
+            gsap.killTweensOf('.circle-container');
+            gsap.fromTo('.circle-container', 
+                { scale: 0.85, opacity: 0.3 }, 
+                { scale: 1, opacity: 1, duration: 1.8, ease: "elastic.out(1, 0.4)" }
+            );
+
+            gsap.to(['.ui-text', '.ui-month'], {
+                y: -15, opacity: 0, duration: 0.4, stagger: 0.05, ease: "power2.in",
+                onComplete: () => {
+                    document.querySelector('.ui-month').innerHTML = memo.monthTopRight;
+                    document.querySelector('.date-title').innerHTML = memo.dateTitle;
+                    document.querySelector('.subtitle-text').innerHTML = memo.subtitle;
+                    document.querySelector('.quote-text').innerHTML = `"${memo.quote}"`;
+                    
+                    gsap.fromTo(['.ui-text', '.ui-month'], 
+                        { y: 15, opacity: 0 }, 
+                        { y: 0, opacity: 1, duration: 0.8, stagger: 0.05, ease: "power3.out" }
+                    );
+                }
+            });
+        }
+
+        function updatePointer(clientX, clientY) {
+            mouseX = (clientX / window.innerWidth) * 2 - 1; 
+            mouseY = -(clientY / window.innerHeight) * 2 + 1;
+            pointLight.position.x = mouseX * (camera.position.z * 0.55);
+            pointLight.position.y = mouseY * (camera.position.z * 0.55);
+        }
+        window.addEventListener('mousemove', (e) => updatePointer(e.clientX, e.clientY));
+        window.addEventListener('touchmove', (e) => {
+            if(e.touches.length > 0) updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+        }, {passive: true});
+
+        const clock = new THREE.Clock();
+        function animate() {
+            const time = clock.getElapsedTime();
+
+            // 🌟 1. ระบบละลายสีพื้นหลัง (Seamless Color Morphing)
+            // ทำให้ตอนไถจอ สีจะค่อยๆ เปลี่ยนไปตามเดือนอย่างนุ่มนวล
+            currentBgColor.lerp(targetBgColor, 0.03);
+            currentStarColor.lerp(targetStarColor, 0.03);
+            
+            scene.background = currentBgColor;
+            if(scene.fog) scene.fog.color = currentBgColor;
+            document.body.style.backgroundColor = '#' + currentBgColor.getHexString();
+            
+            starsMaterial.color = currentStarColor;
+            pointLight.color = currentStarColor; // แสงไฟสะท้อนบน CD ก็จะเปลี่ยนสีด้วย!
+
+            // 🌟 2. อนิเมชันทำให้ดาวพุ่งเข้าหาหน้าจอ (Warp Speed Effect)
+            const positions = starParticles.geometry.attributes.position.array;
+            // คำนวณความเร็วดาว: ฐานคือค่อยๆ ลอย แต่ถ้าคุณ "ไถจอแรง" ดาวจะพุ่งเร็ว!
+            const dynamicSpeed = 0.05 + Math.min(scrollSpeed * 0.01, 2.0); 
+            
+            for(let i = 2; i < starsCount * 3; i+=3) {
+                positions[i] += dynamicSpeed; // แกน Z พุ่งเข้าหน้ากล้อง
+                // ถ้าดาวพุ่งทะลุกล้องมาแล้ว ให้โยนกลับไปเกิดใหม่ไกลๆ ด้านหลัง
+                if(positions[i] > camera.position.z + 10) {
+                    positions[i] = camera.position.z - 80 - Math.random() * 40; 
+                    positions[i-1] = (Math.random() - 0.5) * 100; // สุ่มจุดเกิด Y
+                    positions[i-2] = (Math.random() - 0.5) * 100; // สุ่มจุดเกิด X
+                }
+            }
+            starParticles.geometry.attributes.position.needsUpdate = true;
+            scrollSpeed *= 0.9; // ความแรงไถจอค่อยๆ ลดลงกลับไปปกติ
+
+            // ดาวจะหมุนและขยับตามการเอียงหน้าจอ (Parallax)
+            starParticles.rotation.y = time * 0.02 + mouseX * 0.1;
+            starParticles.rotation.x = time * 0.01 + mouseY * 0.1;
+
+            const totalWidth = (memories.length - 1) * spacing;
+            const targetX = -(scrollProgress * totalWidth);
+            currentTargetX += (targetX - currentTargetX) * 0.05;
+            cdGroup.position.x = currentTargetX;
+
+            let newActiveIndex = Math.round(Math.abs(currentTargetX) / spacing);
+            newActiveIndex = Math.max(0, Math.min(newActiveIndex, memories.length - 1));
+            updateUI(newActiveIndex);
+
+            pivots.forEach((obj) => {
+                const worldX = obj.pivot.position.x + currentTargetX;
+                const distance = Math.abs(worldX);
+                const sign = Math.sign(worldX);
+                
+                const targetZ = -Math.pow(distance * 0.9, 1.5); 
+                obj.pivot.position.z += (Math.max(targetZ, -15) - obj.pivot.position.z) * 0.08;
+                
+                const targetRotY = Math.min(distance * 0.22, 1.2) * sign;
+                obj.pivot.rotation.y += (targetRotY - obj.pivot.rotation.y) * 0.08;
+                
+                const targetRotX = distance * 0.05;
+                
+                if (distance < 0.5 && !isTakeover) {
+                    obj.pivot.rotation.x += (-mouseY * 0.1 + targetRotX - obj.pivot.rotation.x) * 0.1;
+                    obj.pivot.rotation.y += (mouseX * 0.1 + targetRotY - obj.pivot.rotation.y) * 0.1;
+                } else {
+                    obj.pivot.rotation.x += (targetRotX - obj.pivot.rotation.x) * 0.08;
+                }
+                
+                obj.pivot.position.y = Math.sin(time * 1.5 + obj.index) * 0.15;
+                if (distance < 1.5) { obj.mesh.rotation.z -= 0.005 + (0.01 * Math.max(0, (1 - distance))); }
+            });
+
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera({x: mouseX, y: mouseY}, camera);
+            const intersects = raycaster.intersectObjects(discMeshes);
+            document.body.style.cursor = (intersects.length > 0 && !isTakeover) ? 'pointer' : 'auto';
+
+            if (scrollProgress > 0.02) document.querySelector('.center-instruction').style.opacity = '0';
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        window.addEventListener('pointerdown', (e) => {
+            touchStartX = e.clientX;
+            touchStartY = e.clientY;
+        });
+
+        window.addEventListener('pointerup', (e) => {
+            if (e.target.classList.contains('close-btn') || isTakeover) return;
+            
+            if (Math.abs(e.clientX - touchStartX) > 10 || Math.abs(e.clientY - touchStartY) > 10) return;
+
+            const tapX = (e.clientX / window.innerWidth) * 2 - 1;
+            const tapY = -(e.clientY / window.innerHeight) * 2 + 1;
+            
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera({x: tapX, y: tapY}, camera);
+            const intersects = raycaster.intersectObjects(discMeshes);
+            
+            if (intersects.length > 0) {
+                const clickedIndex = intersects[0].object.userData.index;
+                
+                if (clickedIndex === activeIndex) {
+                    isTakeover = true;
+                    const memo = memories[clickedIndex];
+                    document.querySelector('.takeover-sub').innerHTML = memo.takeoverSub;
+                    document.querySelector('.takeover-title').innerHTML = memo.takeoverMessage;
+                    document.querySelector('.takeover-bg').style.backgroundImage = `url('${memo.bgImage}')`;
+                    document.querySelector('.takeover').classList.add('active');
+                    
+                    gsap.fromTo('.takeover-bg', { scale: 1.25, opacity: 0 }, { scale: 1, opacity: 1, duration: 2.0, ease: "power3.out" });
+                    gsap.to('.takeover-overlay', { opacity: 1, duration: 1.5 });
+                    gsap.fromTo(['.takeover-sub', '.takeover-title', '.close-btn'], 
+                        { y: 50, opacity: 0, filter: "blur(5px)" }, 
+                        { y: 0, opacity: 1, filter: "blur(0px)", duration: 1.2, stagger: 0.15, delay: 0.4, ease: "power3.out" }
+                    );
+                    lenis.stop(); 
+                    gsap.to('.circle-container', { opacity: 0, duration: 0.5 }); 
+                } else {
+                    const targetScrollY = (clickedIndex / (memories.length - 1)) * (document.body.scrollHeight - window.innerHeight);
+                    lenis.scrollTo(targetScrollY, { duration: 1.8, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+                }
+            }
+        });
+
+        document.querySelector('.close-btn').addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            gsap.to(['.takeover-sub', '.takeover-title', '.close-btn'], { y: -30, opacity: 0, duration: 0.5, stagger: 0.05, ease: "power3.in" });
+            gsap.to(['.takeover-overlay', '.takeover-bg'], { 
+                opacity: 0, scale: 1.05, duration: 1.2, delay: 0.2, ease: "power2.inOut",
+                onComplete: () => { document.querySelector('.takeover').classList.remove('active'); isTakeover = false; lenis.start(); }
+            });
+            gsap.to('.circle-container', { opacity: 1, duration: 1, delay: 0.5 });
+        });
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            updateCameraZ();
+        });
+
+        // ==========================================================
+        // 🎵 ระบบเพลงพื้นหลัง: จะเริ่มเล่นเมื่อมีการกดคลิกหรือสัมผัสหน้าจอ
+        // ==========================================================
+        const bgMusic = document.getElementById('bg-music');
+        
+        // สำหรับการกดคลิกด้วยเมาส์
+        window.addEventListener('click', () => {
+            if (bgMusic.paused) {
+                bgMusic.volume = 0.5; // ปรับความดังได้ (0.0 ถึง 1.0)
+                bgMusic.play().catch(e => console.log("รอการคลิกเพื่อเล่นเพลง"));
+            }
+        }, { once: true });
+        
+        // สำหรับการเอานิ้วสัมผัสบนมือถือ
+        window.addEventListener('touchstart', () => {
+            if (bgMusic.paused) {
+                bgMusic.volume = 0.5;
+                bgMusic.play().catch(e => console.log("รอการสัมผัสเพื่อเล่นเพลง"));
+            }
+        }, { once: true });
+
     </script>
 </body>
 </html>
