@@ -540,21 +540,45 @@
         }
         animate();
 
+       // ====================================================================
+        // 🌟 ระบบสัมผัสเวอร์ชันสมบูรณ์แบบ (รองรับ iPhone/iPad & PC 100%)
+        // ====================================================================
         let touchStartX = 0;
         let touchStartY = 0;
 
-        window.addEventListener('pointerdown', (e) => {
-            touchStartX = e.clientX;
-            touchStartY = e.clientY;
+        // 1. ดักจับตอนนิ้วแตะจอ (สำหรับมือถือ)
+        window.addEventListener('touchstart', (e) => {
+            if(e.touches.length > 0) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }
+        }, {passive: true});
+
+        // 2. ดักจับตอนยกนิ้วขึ้น (สำหรับมือถือ)
+        window.addEventListener('touchend', (e) => {
+            if (e.target.classList.contains('close-btn') || isTakeover) return;
+            if (e.changedTouches.length === 0) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            // ถ้านิ้วขยับเกิน 10px (คือการไถจอ) ให้ยกเลิกการคลิก
+            if (Math.abs(touchEndX - touchStartX) > 10 || Math.abs(touchEndY - touchStartY) > 10) return;
+
+            // ถ้านิ้วจิ้มอยู่กับที่ ให้เรียกฟังก์ชันเปิด CD
+            handleInteraction(touchEndX, touchEndY);
         });
 
-        window.addEventListener('pointerup', (e) => {
+        // 3. สำหรับเมาส์คลิกบนคอมพิวเตอร์
+        window.addEventListener('click', (e) => {
             if (e.target.classList.contains('close-btn') || isTakeover) return;
-            
-            if (Math.abs(e.clientX - touchStartX) > 10 || Math.abs(e.clientY - touchStartY) > 10) return;
+            handleInteraction(e.clientX, e.clientY);
+        });
 
-            const tapX = (e.clientX / window.innerWidth) * 2 - 1;
-            const tapY = -(e.clientY / window.innerHeight) * 2 + 1;
+        // 4. ฟังก์ชันหลักสำหรับเปิดแผ่น CD (รวมไว้ที่เดียวจะได้ไม่ซ้ำซ้อน)
+        function handleInteraction(clientX, clientY) {
+            const tapX = (clientX / window.innerWidth) * 2 - 1;
+            const tapY = -(clientY / window.innerHeight) * 2 + 1;
             
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera({x: tapX, y: tapY}, camera);
@@ -584,7 +608,8 @@
                     lenis.scrollTo(targetScrollY, { duration: 1.8, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
                 }
             }
-        });
+        }
+        // ====================================================================
 
         document.querySelector('.close-btn').addEventListener('click', (e) => {
             e.stopPropagation(); 
